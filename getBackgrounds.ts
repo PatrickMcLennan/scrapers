@@ -24,7 +24,7 @@ function getCurrentWallpapers() {
             images {
                 name
             }
-        }`).then(res).catch(rej)
+        }`).then(images => res(images.map(({name}: {name: string}) => name))).catch(rej)
     )
 }
 
@@ -64,30 +64,6 @@ async function getNewWallpapers(): Promise<ImageDTO[]> {
 
   await browser.close();
   return results;
-}
-
-function downloadImage(
-  result: ImageDTO
-): Promise<{ name: string; success: boolean }> {
-  const { url, name, ext } = result;
-  return new Promise((res) => {
-    const dest = path.join(
-      process.env.BACKGROUNDS_DIR ?? `NULL`,
-      `${name}.${ext}`
-    );
-    const file = fs.createWriteStream(dest);
-    return https
-      .get(url, (response) => {
-        response.pipe(file);
-        file.on(`finish`, () => {
-          file.close();
-          res({ name, success: true });
-        });
-      })
-      .on(`error`, (_err) =>
-        fs.unlink(dest, () => res({ name, success: false }))
-      );
-  });
 }
 
 function slackPost(bot: WebClient, text: string): Promise<void | WebAPICallResult> {
